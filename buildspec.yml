@@ -24,6 +24,8 @@ phases:
       - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
       - echo start command
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+#      - $(docker login --username AWS -p $(aws ecr get-login-password --region $AWS_DEFAULT_REGION) $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/)
+
   build:
     commands:
       - echo Build started on `date`
@@ -81,6 +83,13 @@ phases:
                     image: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$_PROJECT_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
                     ports:
                       - containerPort: 8080
+                    resources:
+                      requests:
+                        cpu: "1000m"
+                        memory: "256Mi"
+                      limits:
+                        cpu: "2500m"
+                        memory: "512Mi"
                     readinessProbe:
                       httpGet:
                         path: '/actuator/health'
@@ -98,7 +107,6 @@ phases:
                       periodSeconds: 5
                       failureThreshold: 5
           EOF
-
 cache:
   paths:
     - '/root/.m2/**/*'
